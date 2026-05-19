@@ -49,25 +49,35 @@ Natural triggers: "epic plan", "go hunting", **`NEXT HUNT!`**, large multi-file 
 
 ## Install
 
-Requires **`caveman`** and **`superpowers-plan`** skills installed (see [Credits](#credits)).
+Requires **`caveman`** and **`superpowers-plan`** (or **`writing-plans`** from obra/superpowers) installed — see [Credits](#credits).
 
-**Cursor / Claude Code (`~/.agents/skills`):**
+**Recommended — [Skills CLI](https://skills.sh/):**
+
+```bash
+# Dependencies (global, once)
+npx skills add juliusbrussee/caveman --skill caveman -g -y
+npx skills add obra/superpowers --skill writing-plans -g -y
+
+# This skill
+npx skills add spikeon/caveman-plan -g -y
+```
+
+Project-local instead of global: drop `-g`.
+
+Browse: [skills.sh/spikeon/caveman-plan](https://skills.sh/spikeon/caveman-plan)
+
+**Manual — git clone (`~/.agents/skills`):**
 
 ```bash
 git clone https://github.com/spikeon/caveman-plan.git ~/.agents/skills/caveman-plan
-```
-
-Or symlink a local clone:
-
-```bash
-ln -sfn /path/to/caveman-plan ~/.agents/skills/caveman-plan
+# then copy or symlink skills/caveman-plan/ → ~/.agents/skills/caveman-plan
 ```
 
 **Cursor project skill (optional):**
 
 ```bash
-mkdir -p .cursor/skills
-ln -sfn /path/to/caveman-plan .cursor/skills/caveman-plan
+npx skills add spikeon/caveman-plan -y
+# or: ln -sfn /path/to/caveman-plan/skills/caveman-plan .cursor/skills/caveman-plan
 ```
 
 Attach the skill or mention `/caveman-plan` in chat.
@@ -88,8 +98,8 @@ Attach the skill or mention `/caveman-plan` in chat.
 
 ## See also
 
-- [`SKILL.md`](./SKILL.md) — full agent instructions
-- [`reference.md`](./reference.md) — templates, manifest examples, anti-patterns
+- [`skills/caveman-plan/SKILL.md`](./skills/caveman-plan/SKILL.md) — full agent instructions
+- [`skills/caveman-plan/reference.md`](./skills/caveman-plan/reference.md) — templates, manifest examples, anti-patterns
 
 ## Credits
 
