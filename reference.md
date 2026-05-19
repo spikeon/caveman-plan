@@ -64,13 +64,33 @@ Epic step: Middleware + token issue/refresh — M
 - [ ] Refresh TTL 7d or 30d? Boss decide before env prod.
 ```
 
+## Claude `/goal` (when enabled)
+
+Set at workflow start:
+
+```
+/goal Epic file created. All plan files created. Every checkbox in epic and every plan checked off.
+```
+
+Boss advances hunts with **`NEXT HUNT!`** after Follow Ups handled.
+
+## Hunt turn limit
+
+| Turns on current plan | Action |
+|-------------------------|--------|
+| 1–2 | Continue tasks in same plan |
+| 3, plan not done | **Stop.** Report open tasks + Follow Ups. Wait for Boss. |
+
+Track in manifest, e.g. `plan_bar.md` → `current (turn 2/3)`.
+
 ## Hunt state machine
 
 ```
 Epic (Boss OK) → Plans (Boss OK hunt?) → ONE plan_*.md (current)
   → tasks: kill | Follow Up
   → STOP 1 + END TURN → Boss: Follow Ups?
-  → STOP 2 + END TURN → Boss: next hunt?
+  → STOP 2 + END TURN → Boss: next hunt? OR `NEXT HUNT!` (goal mode)
+  → turn 3 & not done → STOP (limit) → Boss: unblock?
   → (Boss yes) → NEXT plan only — never skip stops
   → all plans done → Inventory → Boss: hunting complete
 ```

@@ -7,13 +7,61 @@ description: >
   runs one hunt per Boss approval (hard stop between plans — never chain hunts in one turn),
   Follow Ups for uncertainty, then inventory-kills
   against the epic Goal. Depends on caveman (communication) and superpowers-plan (plan steps).
-  Use for epics, multi-phase projects, /caveman-plan, "epic plan", "go hunting", or when
-  work spans many files/sessions and needs Boss checkpoints.
+  Use for epics, multi-phase projects, /caveman-plan, "epic plan", "go hunting", "NEXT HUNT!",
+  or when work spans many files/sessions and needs Boss checkpoints.
 ---
 
 # Caveman Plan
 
 Large project = **Epic** → **Plans** → **Hunts** → **Inventory**. Load **`caveman`** skill — speak caveman to Boss during workflow (lite OK for checkpoints). Load **`superpowers-plan`** — each `plan_*.md` task uses its step format (files, change, verify).
+
+## Claude `/goal` mode
+
+**When:** agent is **Claude** and `/goal` is **available and enabled** → drive workflow with `/goal`. Otherwise use manual Boss checkpoints below.
+
+**Set goal once** at workflow start (after Boss gives project prompt):
+
+```
+/goal Epic file created. All plan files created. Every checkbox in epic and every plan checked off.
+```
+
+Work toward that goal across phases. Do not mark goal done until Inventory passes.
+
+**Between hunts (goal mode):** After STOP 1 (Follow Ups), end turn. Boss advances with:
+
+```
+NEXT HUNT!
+```
+
+Treat `NEXT HUNT!` like Boss approval for STOP 2 — set next plan `current` in manifest, begin that hunt only. Until Boss says it, do not open next `plan_*.md`.
+
+**Goal mode vs manual checkpoints:**
+
+| Phase | Manual mode | `/goal` mode |
+|-------|-------------|--------------|
+| Epic | Ask Boss: change Epic? | Still ask before Plans |
+| Plans | Ask Boss: time to hunt? | First hunt may start when goal set; still show manifest |
+| Hunts | STOP 2: "time for next hunt?" | Boss says **`NEXT HUNT!`** |
+| Done | Inventory + report | Goal complete when all boxes checked |
+
+## Hunt turn limit (mandatory)
+
+Track **turns per hunt** — one turn = one agent response while `plan_*.md` is `current` in manifest.
+
+1. At hunt start, set in `plans-manifest.md` under hunt status: `turns: 0 / 3` for current plan (or append column).
+2. Each agent response on that plan before hunt complete: increment. Example: `turns: 2 / 3`.
+3. **Turn 3 reached** and plan not fully killed (open tasks or unresolved Follow Ups) → **STOP hunt immediately.** No more tasks this hunt. Report blockers. Ask Boss: split plan, clarify Follow Ups, or reset hunt.
+
+```markdown
+## Hunt complete: `plan_<name>.md` (turn limit)
+
+**Turns:** 3/3 — hunt stopped (limit).
+**Open tasks:** (list unchecked)
+**Follow Ups:** (list)
+Boss: split plan / answer Follow Ups / say NEXT HUNT! after fix?
+```
+
+Do not start next plan until Boss responds. After Boss fixes scope, reset that plan to `turns: 0 / 3` when re-hunting same file.
 
 ## When to use
 
@@ -69,11 +117,10 @@ After Boss approves Epic:
 
 ## Hunt status
 
-| Plan file | Status |
-|-----------|--------|
-| `plan_<first>.md` | **current** |
-| `plan_<other>.md` | pending |
-```
+| Plan file | Status | Turns |
+|-----------|--------|-------|
+| `plan_<first>.md` | **current** | 0/3 |
+| `plan_<other>.md` | pending | — |
 
 Every Epic step row must appear exactly once. If manifest rows < Epic steps, Phase 2 not done — split plans. Exactly one `current` plan before first hunt.
 4. Each plan = one focused hunt. Header must name its Epic step. Use superpowers-plan rules inside:
@@ -129,12 +176,12 @@ Keep a `## Hunt status` section. Exactly one plan `current` at a time; rest `pen
 
 | Plan file | Status |
 |-----------|--------|
-| `plan_foo.md` | done |
-| `plan_bar.md` | **current** |
-| `plan_baz.md` | pending |
+| `plan_foo.md` | done | — |
+| `plan_bar.md` | **current** | 2/3 |
+| `plan_baz.md` | pending | — |
 ```
 
-Before first hunt: set first plan to `current`, others `pending`. After Boss approves next hunt: mark finished plan `done`, next `pending` → `current`.
+Before first hunt: set first plan to `current` with `0/3`, others `pending`. Bump Turns each agent response on current plan. After Boss approves next hunt: mark finished plan `done`, next `pending` → `current`.
 
 ### Per hunt workflow
 
@@ -157,9 +204,11 @@ Then next task **in same plan only**.
 
 **STOP 1 — Follow Ups (end turn):** Report what killed, list Follow Ups from this plan. Ask Boss to answer Follow Ups. **Do not** open next plan. **Do not** start next hunt.
 
-**STOP 2 — Next hunt (separate turn after STOP 1):** After Boss handles Follow Ups (or says none needed), ask: **time to start next hunt?** **End turn. Wait for Boss.**
+**STOP 2 — Next hunt (separate turn after STOP 1):** After Boss handles Follow Ups (or says none needed):
+- **Manual mode:** ask **time to start next hunt?** End turn. Wait for Boss yes.
+- **`/goal` mode:** wait for Boss **`NEXT HUNT!`** (exact phrase preferred; close variants OK if obvious).
 
-Only when Boss explicitly approves → set next plan `current` in manifest → begin new hunt at step 1.
+Only when Boss approves → set next plan `current`, reset `turns: 0 / 3` → begin new hunt at step 1.
 
 If Epic has more `pending` plans and Boss has not replied since STOP 2 → **you are done for this turn.**
 
@@ -195,8 +244,9 @@ All plans hunted → inventory pass:
 | Epic written | — | Changes before planning? | **Yes** |
 | Plans written | — | Time to go hunting? | **Yes** |
 | Each plan hunted | STOP 1 | Answer Follow Ups? | **Yes** |
-| Boss replied to Follow Ups | STOP 2 | Time for next hunt? | **Yes** |
-| Boss approved next hunt | start next plan only | — | No (hunt begins) |
+| Boss replied to Follow Ups | STOP 2 | Time for next hunt? / **`NEXT HUNT!`** (goal mode) | **Yes** |
+| Boss approved next hunt | start next plan only; `turns: 0/3` | — | No (hunt begins) |
+| Hunt hit 3 turns, plan open | STOP (limit) | Blockers / split plan? | **Yes** |
 | All plans `done` | Inventory | (report when done) | **Yes** after inventory |
 
 **Between hunts = always end turn.** Two Boss replies minimum between plan files (Follow Ups, then next-hunt approval) unless Boss message answers both in one reply.
@@ -205,7 +255,8 @@ All plans hunted → inventory pass:
 
 - Never skip Boss checkpoints.
 - **Never chain hunts** — one `plan_*.md` per hunt, then stop; no next plan same turn.
-- **Never** skip STOP 1 or STOP 2 between plans.
+- **Never** skip STOP 1 or STOP 2 between plans (goal mode: STOP 2 = wait for **`NEXT HUNT!`**).
+- **Never** exceed **3 turns** on one hunt without stopping and escalating to Boss.
 - **Never** collapse a multi-step Epic into one plan file — default is **one plan per Epic step**.
 - Never mark task complete on uncertainty — Follow Ups instead.
 - Epic stays high-level; detail lives in `plan_*.md`.
@@ -226,3 +277,5 @@ Read dependency skills at hunt/plan time if not already loaded.
 - `/caveman-plan` — start Epic phase from current Boss prompt
 - `/caveman-plan hunt` — resume hunts (pick next incomplete `plan_*.md`)
 - `/caveman-plan inventory` — run Phase 4 only
+- `/goal Epic file created. All plan files created. Every checkbox in epic and every plan checked off.` — Claude goal mode (set at start)
+- **`NEXT HUNT!`** — Boss advances to next plan (goal mode, after Follow Ups)

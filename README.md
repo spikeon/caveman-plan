@@ -37,7 +37,15 @@ Four phases. Boss checkpoints between each. Planning artifacts live in `.plans/`
 /caveman-plan inventory    # Phase 4 only
 ```
 
-Natural triggers: "epic plan", "go hunting", large multi-file / multi-session work.
+**Claude + `/goal` enabled:** set goal at start, Boss says **`NEXT HUNT!`** between plans:
+
+```
+/goal Epic file created. All plan files created. Every checkbox in epic and every plan checked off.
+```
+
+Natural triggers: "epic plan", "go hunting", **`NEXT HUNT!`**, large multi-file / multi-session work.
+
+**Hunt turn limit:** one plan = max **3 agent turns**. Still open on turn 3 → stop, report blockers, wait for Boss (no silent grind).
 
 ## Install
 
